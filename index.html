@@ -1,0 +1,922 @@
+<title>Lessons Learnt</title>
+<style>
+  :root{
+    --cover-0:#4f273d;
+    --cover-1:#72364e;
+    --cover-2:#3a1d2a;
+    --page:#faf3f1;
+    --page-shadow:#eeded9;
+    --ink:#3a1d2a;
+    --ink-soft:rgba(58,29,42,.68);
+    --brass:#8b5567;
+    --brass-bright:#c9a4b0;
+    --brass-dim:#8b5567;
+    --red:#72364e;
+    --red-bright:#b23c63;
+    --void:#1c0e15;
+    --serif:'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+    --sans:'Hanken Grotesk', -apple-system, sans-serif;
+    --mono:'JetBrains Mono', 'SFMono-Regular', monospace;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--void);
+    color:var(--page);
+    font-family:var(--sans);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 20%, rgba(139,85,103,.10), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(0,0,0,.5), transparent 60%);
+    pointer-events:none;
+  }
+
+  .stage-outer{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+  }
+  .scaler{
+    transform-origin:center center;
+  }
+  .frame{
+    position:relative;
+    width:300px;
+    height:600px;
+    overflow:hidden;
+    background:var(--cover-0);
+    box-shadow:
+      0 2px 0 rgba(201,164,176,.3),
+      0 40px 90px -20px rgba(0,0,0,.85),
+      0 10px 30px -8px rgba(0,0,0,.7);
+  }
+
+  /* ---------- progress + nav chrome ---------- */
+  .railtrack{
+    position:absolute;top:0;left:0;right:0;height:3px;
+    background:rgba(201,164,176,.16);
+    z-index:50;
+  }
+  .railfill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg, var(--brass-dim), var(--brass-bright));
+    transition:width .6s cubic-bezier(.65,0,.35,1);
+  }
+  .navchip{
+    position:absolute;top:14px;left:12px;z-index:60;
+    width:28px;height:28px;border-radius:50%;
+    border:1px solid rgba(201,164,176,.4);
+    background:rgba(28,14,21,.4);
+    color:var(--brass-bright);
+    font-family:var(--serif);font-size:17px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;opacity:0;pointer-events:none;
+    transition:opacity .35s ease, background .2s ease;
+  }
+  .navchip.show{opacity:1;pointer-events:auto;}
+  .navchip:hover{background:rgba(201,164,176,.18);}
+
+  /* ---------- scene base ---------- */
+  .scene{
+    position:absolute;inset:0;
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity .55s ease, transform .55s cubic-bezier(.22,.61,.36,1);
+    pointer-events:none;
+  }
+  .scene.active{opacity:1;transform:translateY(0);pointer-events:auto;}
+
+  /* ================= COVER ================= */
+  .scene[data-scene="cover"]{
+    background:
+      radial-gradient(120% 90% at 50% 0%, var(--cover-1), var(--cover-0) 55%, var(--cover-2) 100%);
+  }
+  .scene[data-scene="cover"]::before,
+  .scene[data-scene="patterns"]::before{
+    content:'';
+    position:absolute; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:140px 140px;
+    opacity:.09;
+    mix-blend-mode:overlay;
+    pointer-events:none;
+  }
+  .gilt-edge{
+    position:absolute; inset:10px;
+    border:1px solid rgba(201,164,176,.32);
+    pointer-events:none;
+  }
+  .gilt-edge::after{
+    content:'';position:absolute;inset:4px;
+    border:1px solid rgba(201,164,176,.16);
+  }
+  .cover-glow{
+    position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(52% 34% at 50% 40%, rgba(201,164,176,.42), transparent 72%);
+    animation:glowpulse 6s ease-in-out infinite;
+  }
+  @keyframes glowpulse{ 0%,100%{opacity:.68;} 50%{opacity:1;} }
+  .cover-body{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:40px 30px 48px;
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:10px; letter-spacing:.18em;
+    color:var(--brass-bright); text-transform:uppercase; margin:0 0 20px;
+    opacity:.9;
+  }
+  .question{
+    font-family:var(--serif); font-weight:400; font-style:normal;
+    font-size:38px; line-height:1.08; letter-spacing:.005em;
+    color:#f7ece9; margin:0;
+  }
+  .question em{font-style:italic; color:var(--brass-bright);}
+  .supporting{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; color:rgba(250,243,241,.6);
+    margin:26px 0 0;
+  }
+  .supporting em{font-style:normal; color:var(--brass-bright);}
+  .ribbon{
+    appearance:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-weight:700; font-size:12.5px;
+    letter-spacing:.09em; text-transform:uppercase;
+    color:#fff7f4;
+    background:linear-gradient(180deg, var(--red-bright), var(--red));
+    padding:16px 34px 22px;
+    clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);
+    transform:rotate(-0.6deg);
+    box-shadow:0 14px 30px -10px rgba(114,54,78,.75);
+    animation:sway 5s ease-in-out infinite;
+    margin-top:44px;
+  }
+  .ribbon:active{transform:scale(.96) rotate(-0.6deg);}
+  @keyframes sway{
+    0%,100%{transform:rotate(-0.6deg);}
+    50%{transform:rotate(0.8deg);}
+  }
+
+  /* ================= LEDGER (write / stamp / wall) ================= */
+  .scene[data-scene="ledger"]{
+    background:var(--cover-0);
+  }
+  .page{
+    position:absolute; inset:0;
+    background:var(--page);
+    padding:58px 26px 30px 26px;
+    display:flex; flex-direction:column;
+  }
+  .kicker{
+    font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--red);
+    margin:0 0 14px;
+  }
+  .prompt-q{
+    font-family:var(--serif); font-size:24px; line-height:1.18;
+    color:var(--ink); margin:0 0 22px; max-width:230px;
+  }
+
+  /* -- phase: write -- */
+  .write-block{display:none;}
+  .stance-row{display:flex; gap:8px; margin:0 0 14px;}
+  .stance-btn{
+    flex:1; appearance:none; cursor:pointer; text-align:center;
+    padding:9px 4px; border-radius:999px;
+    border:1.5px solid rgba(58,29,42,.22); background:transparent;
+    font-family:var(--mono); font-size:9px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--ink-soft); transition:all .2s ease; line-height:1.3;
+  }
+  .stance-btn b{display:block; font-family:var(--serif); font-style:italic; font-size:12.5px; letter-spacing:0; text-transform:none; margin-bottom:2px;}
+  .stance-btn.active[data-stance="back"]{border-color:var(--brass); color:var(--brass-dim); background:rgba(139,85,103,.1);}
+  .stance-btn.active[data-stance="now"]{border-color:var(--red); color:var(--red); background:rgba(114,54,78,.07);}
+  .lead-in{
+    font-family:var(--serif); font-style:italic; font-size:14px;
+    color:var(--ink-soft); margin:0 0 10px; line-height:1.45;
+    min-height:38px;
+  }
+  .input-row{
+    border-bottom:1px solid rgba(58,29,42,.35);
+    padding-bottom:8px; margin-bottom:6px;
+    transition:border-color .25s ease;
+  }
+  .input-row.focused{border-color:var(--red);}
+  #lessonInput{
+    width:100%; border:none; background:transparent; outline:none;
+    font-family:var(--serif); font-style:italic; font-size:16.5px;
+    color:var(--ink); padding:2px 0;
+  }
+  #lessonInput::placeholder{color:rgba(58,29,42,.32); font-style:italic;}
+  .input-meta{
+    font-family:var(--mono); font-size:9.5px; color:var(--ink-soft);
+    text-align:right; letter-spacing:.03em; margin-bottom:auto;
+  }
+  .imprint{
+    font-family:var(--mono); font-size:9px; letter-spacing:.06em;
+    color:rgba(58,29,42,.45); text-transform:uppercase;
+    margin:0; padding-top:10px;
+  }
+  .stamp-dock{
+    position:absolute; right:24px; bottom:26px;
+  }
+  .stamp-btn{
+    appearance:none; border:none; cursor:not-allowed; padding:0;
+    width:74px; height:74px; border-radius:50%;
+    background:transparent;
+    border:1.5px solid rgba(58,29,42,.25);
+    color:rgba(58,29,42,.35);
+    font-family:var(--sans); font-weight:700; font-size:9.5px;
+    letter-spacing:.06em; text-transform:uppercase; line-height:1.5;
+    transform:rotate(-9deg);
+    transition:all .3s ease;
+  }
+  .stamp-btn.ready{
+    cursor:pointer;
+    border-color:var(--red);
+    color:var(--red);
+    box-shadow:0 0 0 3px rgba(114,54,78,.1);
+  }
+  .stamp-btn.ready:hover{background:rgba(114,54,78,.06);}
+  .stamp-btn.pressed{transform:rotate(0deg) scale(.86);}
+
+  /* -- phase: stamp -- */
+  .stamp-block{display:none;}
+  .filed-line{
+    font-family:var(--serif); font-style:italic; font-size:17px;
+    color:var(--ink); line-height:1.4; margin:0 0 16px;
+    border-bottom:1px solid rgba(58,29,42,.2); padding-bottom:14px;
+  }
+  .stamp-mark{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:58px;height:58px;border-radius:50%;
+    border:2px solid var(--red); color:var(--red);
+    font-family:var(--sans); font-weight:800; font-size:8.5px;
+    letter-spacing:.08em; text-align:center; text-transform:uppercase;
+    transform:scale(0) rotate(-14deg); opacity:0;
+    margin:6px 0 18px;
+  }
+  .stamp-block.landed .stamp-mark{
+    animation:stampland .5s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes stampland{
+    0%{transform:scale(2.2) rotate(-14deg); opacity:0;}
+    55%{transform:scale(.9) rotate(-14deg); opacity:1;}
+    100%{transform:scale(1) rotate(-14deg); opacity:1;}
+  }
+  .filed-under{
+    font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+    color:var(--brass-dim); opacity:0; transform:translateY(4px);
+    transition:opacity .4s ease .3s, transform .4s ease .3s;
+  }
+  .stamp-block.tagged .filed-under{opacity:1; transform:none;}
+  .filed-under b{color:var(--red); font-weight:700;}
+  .filed-under span{color:var(--ink-soft);}
+  .joined-flash{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(58,29,42,0); text-align:center; padding:0 30px;
+    opacity:0; transition:opacity .5s ease; pointer-events:none;
+  }
+  .joined-flash.show{opacity:1; background:rgba(58,29,42,.92);}
+  .joined-flash p{
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--brass-bright); margin:0;
+  }
+
+  /* -- phase: wall -- */
+  .wall-block{display:none; flex-direction:column; gap:16px;}
+  .wall-block .kicker{margin-bottom:0;}
+  .yours-wrap{margin-bottom:0;}
+  .tag-yours{
+    display:inline-block; font-family:var(--mono); font-size:9px;
+    letter-spacing:.08em; color:var(--red); text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  .lesson-line{
+    font-family:var(--serif); font-style:italic; font-size:17px;
+    line-height:1.35; color:var(--ink); margin:0;
+  }
+  .yours-wrap .lesson-line{color:var(--ink); font-weight:400;}
+  .divider{
+    border:none; border-top:1px dashed rgba(58,29,42,.25);
+    margin:0;
+  }
+  .more-label{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.1em;
+    color:var(--ink-soft); text-transform:uppercase; margin:0;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .pager{display:flex; gap:8px;}
+  .pager button{
+    appearance:none; border:1px solid rgba(58,29,42,.3); background:none;
+    width:22px;height:22px;border-radius:50%; cursor:pointer;
+    color:var(--ink); font-family:var(--serif); font-size:13px; line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pager button:hover{background:rgba(58,29,42,.06);}
+  .sample-lines{display:flex; flex-direction:column; gap:11px;}
+  .sample-lines .lesson-line{font-size:14px; color:var(--ink-soft); font-style:italic;}
+  .sample-item{display:flex; flex-direction:column; gap:3px;}
+  .stance-tag{
+    font-family:var(--mono); font-size:8.5px; letter-spacing:.08em; text-transform:uppercase;
+    display:inline-block; width:fit-content;
+  }
+  .stance-tag.back{color:var(--brass-dim);}
+  .stance-tag.now{color:var(--red);}
+  .wall-cta{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:16px 26px 20px 26px;
+    background:linear-gradient(0deg, var(--page) 55%, rgba(250,243,241,0));
+  }
+  .tab-cta{
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%; appearance:none; border:none; cursor:pointer;
+    background:var(--cover-0); color:var(--brass-bright);
+    font-family:var(--sans); font-weight:700; font-size:11.5px;
+    letter-spacing:.08em; text-transform:uppercase;
+    padding:14px 18px; clip-path:polygon(0 0,100% 0,96% 100%,0% 100%);
+  }
+  .tab-cta:hover{background:var(--cover-1);}
+
+  /* ================= PATTERNS ================= */
+  .scene[data-scene="patterns"]{
+    background:radial-gradient(120% 90% at 50% 0%, var(--cover-1), var(--cover-0) 60%);
+    padding:58px 26px 30px;
+  }
+  .patterns-head .kicker{color:var(--brass-bright);}
+  .patterns-title{
+    font-family:var(--serif); font-size:23px; line-height:1.25;
+    color:#f7ece9; margin:0 0 6px; max-width:240px;
+  }
+  .patterns-sub{
+    font-family:var(--sans); font-size:12px; line-height:1.5;
+    color:rgba(250,243,241,.65); margin:0 0 14px; max-width:240px;
+  }
+  .patterns-legend{
+    display:flex; gap:16px; margin:0 0 18px;
+    font-family:var(--mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .patterns-legend span{display:flex; align-items:center; gap:5px; color:rgba(250,243,241,.6);}
+  .patterns-legend i{width:7px;height:7px;border-radius:50%; display:block;}
+  .patterns-legend i.back{background:var(--brass-bright);}
+  .patterns-legend i.now{background:var(--red-bright);}
+  .theme-list{display:flex; flex-direction:column;}
+  .theme-row{
+    appearance:none; border:none; text-align:left; cursor:pointer;
+    background:none; padding:12px 6px;
+    border-top:1px solid rgba(201,164,176,.18);
+    display:flex; flex-direction:column; gap:7px;
+    opacity:0; transform:translateX(10px);
+    transition:opacity .5s ease, transform .5s ease, background .2s ease;
+  }
+  .theme-row:last-child{border-bottom:1px solid rgba(201,164,176,.18);}
+  .theme-row.in{opacity:1; transform:none;}
+  .theme-row:hover{background:rgba(201,164,176,.06);}
+  .theme-row.mine{background:rgba(178,60,99,.14);}
+  .row-top{display:flex; align-items:center; gap:10px;}
+  .tab-chip{
+    width:9px;height:15px; flex:none;
+    background:var(--brass);
+    clip-path:polygon(0 0,100% 0,100% 70%,50% 100%,0 70%);
+  }
+  .row-name{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.1em;
+    color:#f7ece9; text-transform:uppercase; flex:1;
+  }
+  .row-count{
+    font-family:var(--mono); font-size:10.5px; color:var(--brass-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  .row-chev{color:var(--brass-bright); font-family:var(--serif); font-size:15px;}
+  .tally-track{height:3px; background:rgba(201,164,176,.18); margin-left:19px;}
+  .tally-fill-wrap{display:flex; height:100%; width:0%; transition:width 1s cubic-bezier(.22,.61,.36,1) .1s; overflow:hidden;}
+  .tally-back{height:100%; background:var(--brass-bright);}
+  .tally-now{height:100%; background:var(--red-bright);}
+  .row-mine-note{
+    margin-left:19px; font-family:var(--serif); font-style:italic; font-size:11px;
+    color:var(--red-bright);
+  }
+
+  /* ================= CLUSTER ================= */
+  .scene[data-scene="cluster"]{
+    background:var(--page); padding:58px 26px 30px 26px;
+  }
+  .cluster-eyebrow{
+    font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+    color:var(--red); text-transform:uppercase; margin:0 0 10px;
+  }
+  .cluster-title{
+    font-family:var(--serif); font-size:32px; line-height:1.05;
+    color:var(--ink); margin:0 0 14px;
+  }
+  .cluster-desc{
+    font-family:var(--sans); font-size:12.5px; line-height:1.55;
+    color:var(--ink-soft); margin:0 0 20px; max-width:235px;
+  }
+  .cluster-samples{display:flex; flex-direction:column; gap:14px; margin-bottom:18px;}
+  .cluster-samples .lesson-line{font-size:14.5px;}
+  .cluster-samples .tag-yours{margin-bottom:3px;}
+  .cluster-half-label{
+    font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+    margin:0 0 7px; display:flex; align-items:center; gap:6px;
+  }
+  .cluster-half-label i{width:7px;height:7px;border-radius:50%; display:block;}
+  .cluster-half-label.back{color:var(--brass-dim);}
+  .cluster-half-label.back i{background:var(--brass-bright);}
+  .cluster-half-label.now{color:var(--red);}
+  .cluster-half-label.now i{background:var(--red-bright);}
+  .cluster-half + .cluster-half{border-top:1px dashed rgba(58,29,42,.18); padding-top:14px;}
+  .url-chip{
+    display:inline-block; font-family:var(--mono); font-size:10px;
+    color:var(--brass-dim); border:1px solid rgba(58,29,42,.2);
+    padding:5px 10px; margin-bottom:22px; letter-spacing:.02em;
+  }
+  .cluster-cta-wrap{position:absolute; left:0; right:0; bottom:26px; padding:0 26px 0 26px;}
+  .explore-btn{
+    width:100%; appearance:none; border:none; cursor:pointer;
+    background:linear-gradient(180deg, var(--red-bright), var(--red));
+    color:#fff7f4; font-family:var(--sans); font-weight:700; font-size:12.5px;
+    letter-spacing:.08em; text-transform:uppercase; padding:15px 0;
+  }
+  .handoff{
+    margin-top:14px; font-family:var(--mono); font-size:10px; color:var(--ink-soft);
+    line-height:1.6; opacity:0; max-height:0; overflow:hidden;
+    transition:opacity .4s ease, max-height .4s ease;
+  }
+  .handoff.show{opacity:1; max-height:120px;}
+  .handoff a{color:var(--red); text-decoration:none; border-bottom:1px dotted var(--red);}
+  .back-link{
+    background:none;border:none;cursor:pointer;color:var(--ink-soft);
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+    padding:0; margin-top:10px;
+  }
+
+  .frame-caption{
+    font-family:var(--mono); font-size:10.5px; color:rgba(250,243,241,.45);
+    letter-spacing:.04em; text-align:center; margin:0;
+  }
+  .frame-caption button{
+    background:none;border:none;color:rgba(201,164,176,.75);
+    font-family:var(--mono);font-size:10.5px;cursor:pointer;letter-spacing:.04em;
+    margin-left:8px; text-decoration:underline;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ribbon{animation:none;}
+    .cover-glow{animation:none; opacity:.85;}
+    *{transition-duration:.15s !important; animation-duration:.15s !important;}
+  }
+</style>
+
+<div class="stage-outer">
+  <div class="scaler" id="scaler">
+    <div class="frame" id="frame">
+      <div class="railtrack"><div class="railfill" id="railfill"></div></div>
+      <button class="navchip" id="backBtn" aria-label="Back">&#8249;</button>
+
+      <!-- SCENE 1 — COVER -->
+      <section class="scene active" data-scene="cover">
+        <div class="gilt-edge"></div>
+        <div class="cover-glow"></div>
+        <div class="cover-body">
+          <p class="eyebrow">The lesson. One generation to the next.</p>
+          <h1 class="question">What did life<br>teach <em>you</em>?</h1>
+          <p class="supporting">Every generation has one.</p>
+          <button class="ribbon" id="toInvite">Tell us yours</button>
+        </div>
+      </section>
+
+      <!-- SCENE 2 — LEDGER (write / stamp / wall) -->
+      <section class="scene" data-scene="ledger" data-phase="write">
+        <div class="page">
+
+          <div class="write-block">
+            <p class="kicker">02 &mdash; Your turn</p>
+            <h2 class="prompt-q">What's one lesson worth passing on?</h2>
+            <div class="stance-row" id="stanceRow">
+              <button class="stance-btn" type="button" data-stance="back"><b>Looking back</b>What I've learned</button>
+              <button class="stance-btn" type="button" data-stance="now"><b>Right now</b>What I'm learning</button>
+            </div>
+            <p class="lead-in" id="leadIn">Choose one, then tell us in your own words&hellip;</p>
+            <div class="input-row" id="inputRow">
+              <input id="lessonInput" maxlength="90" placeholder="Type it here" autocomplete="off" />
+            </div>
+            <p class="input-meta"><span id="charCount">90</span> characters left</p>
+            <p class="imprint">Anonymous by design &mdash; no name, no email, no account.</p>
+            <div class="stamp-dock">
+              <button class="stamp-btn" id="submitBtn" disabled>Share<br>Anon.</button>
+            </div>
+          </div>
+
+          <div class="stamp-block">
+            <p class="kicker">03 &mdash; Anonymous</p>
+            <p class="filed-line" id="filedLine">&ldquo;&rdquo;</p>
+            <div class="stamp-mark">Anon<br>&bull;&bull;&bull;</div>
+            <p class="filed-under" id="filedUnder">Filed under <b id="filedTheme">LIFE</b> <span id="filedStance">&mdash; Looking back</span></p>
+          </div>
+
+          <div class="wall-block">
+            <p class="kicker">04 &mdash; The wall</p>
+            <div class="yours-wrap">
+              <span class="tag-yours" id="tagYours">&mdash; yours, just now</span>
+              <p class="lesson-line" id="yourLine">&ldquo;&rdquo;</p>
+            </div>
+            <hr class="divider" />
+            <p class="more-label">More from the wall <span class="pager"><button id="prevBtn" aria-label="Previous">&#8249;</button><button id="nextBtn" aria-label="Next">&#8250;</button></span></p>
+            <div class="sample-lines" id="sampleLines"></div>
+          </div>
+
+          <div class="joined-flash" id="joinedFlash"><p>Your lesson has joined the wall.</p></div>
+
+          <div class="wall-cta" id="wallCta" style="display:none;">
+            <button class="tab-cta" id="toPatterns">See the patterns <span>&rarr;</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCENE 3 — PATTERNS -->
+      <section class="scene" data-scene="patterns">
+        <div class="patterns-head">
+          <p class="kicker">05 &mdash; Patterns</p>
+          <h2 class="patterns-title">What one generation learned. What the next is still learning.</h2>
+          <p class="patterns-sub">Every theme holds two kinds of voices &mdash; look at the balance.</p>
+          <p class="patterns-legend"><span><i class="back"></i>Looking back</span><span><i class="now"></i>Right now</span></p>
+        </div>
+        <div class="theme-list" id="themeList"></div>
+      </section>
+
+      <!-- SCENE 4 — CLUSTER -->
+      <section class="scene" data-scene="cluster">
+        <p class="cluster-eyebrow">A theme, ready to grow</p>
+        <h2 class="cluster-title" id="clusterTitle">Career</h2>
+        <p class="cluster-desc" id="clusterDesc">Explore the lessons, stories and insights around Career.</p>
+        <div class="cluster-samples" id="clusterSamples"></div>
+        <span class="url-chip" id="clusterUrl">/lessonslearnt/career</span>
+        <div class="cluster-cta-wrap">
+          <button class="explore-btn" id="exploreBtn">Explore Career &rarr;</button>
+          <div class="handoff" id="handoff">
+            <span id="handoffText"></span><br />
+            <button class="back-link" id="backToWall">&#8617; Back to Lessons Learnt</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+  <p class="frame-caption">LESSONS LEARNT &mdash; interactive prototype, phase 1<button id="restartBtn">&#8635; restart</button></p>
+</div>
+
+<script>
+(function(){
+  var LESSONS = [
+    {text:"I wish I'd stopped apologising for taking up space.", theme:"LIFE", stance:"back"},
+    {text:"Nothing was ever as permanent as it felt at the time.", theme:"LIFE", stance:"back"},
+    {text:"I'm learning that resting isn't the same as giving up.", theme:"LIFE", stance:"now"},
+    {text:"I'm starting to realise most people are too busy worrying about themselves to judge me.", theme:"LIFE", stance:"now"},
+    {text:"I should have asked for the raise instead of waiting to be noticed.", theme:"CAREER", stance:"back"},
+    {text:"Leaving that job was the bravest thing I ever did.", theme:"CAREER", stance:"back"},
+    {text:"I'm learning my worth isn't tied to how busy I look.", theme:"CAREER", stance:"now"},
+    {text:"I'm figuring out that a title doesn't equal purpose.", theme:"CAREER", stance:"now"},
+    {text:"I wish someone had explained compound interest to me at 20.", theme:"MONEY", stance:"back"},
+    {text:"Being broke and being poor were never the same thing.", theme:"MONEY", stance:"back"},
+    {text:"I'm learning to save before I see the money, not after.", theme:"MONEY", stance:"now"},
+    {text:"I'm realising debt isn't a personality trait — it's a decision I can undo.", theme:"MONEY", stance:"now"},
+    {text:"I didn't call my mother enough while I still could.", theme:"FAMILY", stance:"back"},
+    {text:"Loving someone and needing distance from them can both be true.", theme:"FAMILY", stance:"back"},
+    {text:"I'm learning that showing up matters more than saying the right thing.", theme:"FAMILY", stance:"now"},
+    {text:"I'm figuring out how to set boundaries without losing the relationship.", theme:"FAMILY", stance:"now"},
+    {text:"I stayed too long because I was scared of starting over.", theme:"RELATIONSHIPS", stance:"back"},
+    {text:"I wish I'd said it before it was too late.", theme:"RELATIONSHIPS", stance:"back"},
+    {text:"I'm learning that texting back fast doesn't make me needy.", theme:"RELATIONSHIPS", stance:"now"},
+    {text:"I'm figuring out that I don't need everyone's approval to feel sure of myself.", theme:"RELATIONSHIPS", stance:"now"},
+    {text:"None of my plans survived contact with real life — and that was fine.", theme:"FUTURE", stance:"back"},
+    {text:"I spent too long waiting until I was ready.", theme:"FUTURE", stance:"back"},
+    {text:"I'm learning to take the holiday instead of saving it for someday.", theme:"FUTURE", stance:"now"},
+    {text:"I'm starting to believe the plan will change, and starting anyway.", theme:"FUTURE", stance:"now"}
+  ];
+
+  var THEME_ORDER = ["LIFE","CAREER","MONEY","FAMILY","RELATIONSHIPS","FUTURE"];
+  var BASE_COUNTS = {
+    LIFE:{back:220, now:192},
+    CAREER:{back:150, now:118},
+    MONEY:{back:165, now:66},
+    FAMILY:{back:190, now:115},
+    RELATIONSHIPS:{back:130, now:114},
+    FUTURE:{back:60, now:137}
+  };
+  var COUNTS = {}; THEME_ORDER.forEach(function(t){COUNTS[t]={back:BASE_COUNTS[t].back, now:BASE_COUNTS[t].now};});
+
+  var KEYWORDS = {
+    CAREER: ['job','career','work','salary','boss','promot','quit','resign','interview','office'],
+    MONEY: ['money','save','spend','debt','invest','budget','financ','afford','broke','rich','bank'],
+    FAMILY: ['mother','father','mom','dad','parent','family','sibling','brother','sister','son ','daughter'],
+    RELATIONSHIPS: ['love','partner','relationship','marriage','breakup','dating','friend','spouse'],
+    FUTURE: ['future','tomorrow','goal','dream','plan','someday']
+  };
+
+  function classify(text){
+    var lower = ' '+text.toLowerCase()+' ';
+    for(var theme in KEYWORDS){
+      var words = KEYWORDS[theme];
+      for(var i=0;i<words.length;i++){
+        if(lower.indexOf(words[i])!==-1) return theme;
+      }
+    }
+    return 'LIFE';
+  }
+
+  var state = {
+    scene:'cover',
+    phase:'write',
+    userText:'',
+    userTheme:'LIFE',
+    userStance:null,
+    sampleOffset:0
+  };
+
+  var stageOrder = ['cover','write','stamp','wall','patterns','cluster'];
+  function stageIndex(){
+    if(state.scene==='ledger') return stageOrder.indexOf(state.phase);
+    return stageOrder.indexOf(state.scene);
+  }
+  function updateRail(){
+    var pct = (stageIndex()/(stageOrder.length-1))*100;
+    document.getElementById('railfill').style.width = pct+'%';
+  }
+  function updateBack(){
+    document.getElementById('backBtn').classList.toggle('show', state.scene!=='cover');
+  }
+
+  function showScene(name){
+    document.querySelectorAll('.scene').forEach(function(el){
+      el.classList.toggle('active', el.getAttribute('data-scene')===name);
+    });
+    state.scene = name;
+    updateRail(); updateBack();
+  }
+
+  function setPhase(p){
+    state.phase = p;
+    var ledger = document.querySelector('.scene[data-scene="ledger"]');
+    ledger.setAttribute('data-phase', p);
+    ledger.querySelector('.write-block').style.display = (p==='write')?'flex':'none';
+    ledger.querySelector('.write-block').style.flexDirection = 'column';
+    ledger.querySelector('.stamp-block').style.display = (p==='stamp')?'block':'none';
+    ledger.querySelector('.wall-block').style.display = (p==='wall')?'flex':'none';
+    document.getElementById('wallCta').style.display = (p==='wall')?'block':'none';
+    updateRail();
+  }
+
+  /* ---------- COVER -> WRITE ---------- */
+  document.getElementById('toInvite').addEventListener('click', function(){
+    showScene('ledger');
+    setPhase('write');
+    setTimeout(function(){ document.getElementById('lessonInput').focus(); }, 400);
+  });
+
+  /* ---------- WRITE ---------- */
+  var input = document.getElementById('lessonInput');
+  var submitBtn = document.getElementById('submitBtn');
+  var inputRow = document.getElementById('inputRow');
+  var leadIn = document.getElementById('leadIn');
+  var stanceBtns = Array.prototype.slice.call(document.querySelectorAll('.stance-btn'));
+
+  var LEAD_IN_TEXT = {
+    back: "If I could tell my younger self one thing, it would be…",
+    now: "The thing I'm learning right now is…"
+  };
+
+  function checkReady(){
+    var ready = input.value.trim().length>2 && !!state.userStance;
+    submitBtn.disabled = !ready;
+    submitBtn.classList.toggle('ready', ready);
+  }
+
+  stanceBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      stanceBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      state.userStance = btn.getAttribute('data-stance');
+      leadIn.textContent = LEAD_IN_TEXT[state.userStance];
+      checkReady();
+    });
+  });
+
+  input.addEventListener('focus', function(){ inputRow.classList.add('focused'); });
+  input.addEventListener('blur', function(){ inputRow.classList.remove('focused'); });
+  input.addEventListener('input', function(){
+    var len = input.value.length;
+    document.getElementById('charCount').textContent = 90-len;
+    checkReady();
+  });
+  input.addEventListener('keydown', function(e){
+    if(e.key==='Enter' && !submitBtn.disabled) submitLesson();
+  });
+  submitBtn.addEventListener('click', submitLesson);
+
+  function submitLesson(){
+    if(submitBtn.disabled) return;
+    var text = input.value.trim();
+    state.userText = text;
+    state.userTheme = classify(text);
+    COUNTS[state.userTheme][state.userStance] += 1;
+
+    submitBtn.classList.add('pressed');
+    setTimeout(function(){
+      setPhase('stamp');
+      document.getElementById('filedLine').textContent = '“'+text+'”';
+      document.getElementById('filedTheme').textContent = state.userTheme;
+      document.getElementById('filedStance').textContent = '— '+(state.userStance==='back' ? 'Looking back' : 'Right now');
+      var block = document.querySelector('.stamp-block');
+      block.classList.remove('landed','tagged');
+      void block.offsetWidth;
+      requestAnimationFrame(function(){
+        block.classList.add('landed');
+        setTimeout(function(){ block.classList.add('tagged'); }, 350);
+      });
+
+      setTimeout(function(){
+        var flash = document.getElementById('joinedFlash');
+        flash.classList.add('show');
+        setTimeout(function(){
+          flash.classList.remove('show');
+          enterWall();
+        }, 1400);
+      }, 1500);
+    }, 260);
+  }
+
+  /* ---------- WALL ---------- */
+  function groupsForOthers(){
+    var pool = LESSONS.slice();
+    var groups = [];
+    for(var i=0;i<pool.length;i+=4){
+      groups.push(pool.slice(i,i+4));
+    }
+    return groups;
+  }
+  var groups = groupsForOthers();
+
+  function renderSampleGroup(){
+    var group = groups[state.sampleOffset % groups.length];
+    var wrap = document.getElementById('sampleLines');
+    wrap.style.opacity = 0;
+    setTimeout(function(){
+      wrap.innerHTML = group.map(function(l){
+        return '<div class="sample-item"><span class="stance-tag '+l.stance+'">'+(l.stance==='back'?'Looking back':'Right now')+'</span><p class="lesson-line">“'+l.text+'”</p></div>';
+      }).join('');
+      wrap.style.transition = 'opacity .35s ease';
+      wrap.style.opacity = 1;
+    }, 120);
+  }
+
+  function enterWall(){
+    document.getElementById('yourLine').textContent = '“'+state.userText+'”';
+    document.getElementById('tagYours').textContent = '— yours, ' + (state.userStance==='back' ? 'looking back' : 'right now');
+    state.sampleOffset = 0;
+    renderSampleGroup();
+    setPhase('wall');
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', function(){
+    state.sampleOffset = (state.sampleOffset - 1 + groups.length) % groups.length;
+    renderSampleGroup();
+  });
+  document.getElementById('nextBtn').addEventListener('click', function(){
+    state.sampleOffset = (state.sampleOffset + 1) % groups.length;
+    renderSampleGroup();
+  });
+
+  /* ---------- WALL -> PATTERNS ---------- */
+  document.getElementById('toPatterns').addEventListener('click', function(){
+    buildThemeList();
+    showScene('patterns');
+  });
+
+  function themeTotal(theme){ return COUNTS[theme].back + COUNTS[theme].now; }
+
+  function buildThemeList(){
+    var max = Math.max.apply(null, THEME_ORDER.map(themeTotal));
+    var list = document.getElementById('themeList');
+    list.innerHTML = '';
+    THEME_ORDER.forEach(function(theme, i){
+      var total = themeTotal(theme);
+      var backPct = Math.round((COUNTS[theme].back/total)*1000)/10;
+      var nowPct = Math.round((COUNTS[theme].now/total)*1000)/10;
+      var barW = Math.round((total/max)*100);
+      var row = document.createElement('button');
+      row.className = 'theme-row'+(theme===state.userTheme?' mine':'');
+      row.innerHTML =
+        '<span class="row-top">'+
+          '<span class="tab-chip"></span>'+
+          '<span class="row-name">'+theme+'</span>'+
+          '<span class="row-count">'+total.toLocaleString()+'</span>'+
+          '<span class="row-chev">&rsaquo;</span>'+
+        '</span>'+
+        '<span class="tally-track"><span class="tally-fill-wrap" data-w="'+barW+'">'+
+          '<span class="tally-back" style="flex:'+backPct+'"></span>'+
+          '<span class="tally-now" style="flex:'+nowPct+'"></span>'+
+        '</span></span>'+
+        (theme===state.userTheme ? '<span class="row-mine-note">Includes the lesson you just shared</span>' : '');
+      row.addEventListener('click', function(){ openCluster(theme); });
+      list.appendChild(row);
+      setTimeout(function(){
+        row.classList.add('in');
+        var fill = row.querySelector('.tally-fill-wrap');
+        setTimeout(function(){ fill.style.width = fill.getAttribute('data-w')+'%'; }, 80);
+      }, 90*i);
+    });
+  }
+
+  /* ---------- PATTERNS -> CLUSTER ---------- */
+  function titleCase(t){ return t.charAt(0)+t.slice(1).toLowerCase(); }
+
+  function openCluster(theme){
+    var backSamples = LESSONS.filter(function(l){return l.theme===theme && l.stance==='back';});
+    var nowSamples = LESSONS.filter(function(l){return l.theme===theme && l.stance==='now';});
+    var mineIsBack = state.userTheme===theme && state.userStance==='back';
+    var mineIsNow = state.userTheme===theme && state.userStance==='now';
+
+    document.getElementById('clusterTitle').textContent = titleCase(theme);
+    document.getElementById('clusterDesc').textContent = 'What one generation learned about '+titleCase(theme).toLowerCase()+'. What the next is still learning.';
+    document.getElementById('clusterUrl').textContent = '/lessonslearnt/'+theme.toLowerCase();
+    document.getElementById('exploreBtn').textContent = 'Explore '+titleCase(theme)+' →';
+    document.getElementById('handoff').classList.remove('show');
+
+    function half(label, cls, samples, mine, cap){
+      var html = '<div class="cluster-half">';
+      html += '<p class="cluster-half-label '+cls+'"><i></i>'+label+'</p>';
+      if(mine){
+        html += '<div><span class="tag-yours">yours</span><p class="lesson-line">“'+state.userText+'”</p></div>';
+      }
+      samples.slice(0, mine ? cap-1 : cap).forEach(function(s){
+        html += '<div><p class="lesson-line">“'+s.text+'”</p></div>';
+      });
+      html += '</div>';
+      return html;
+    }
+
+    var box = document.getElementById('clusterSamples');
+    box.innerHTML =
+      half('Looking back', 'back', backSamples, mineIsBack, 2) +
+      half('Right now', 'now', nowSamples, mineIsNow, 2);
+
+    showScene('cluster');
+  }
+
+  document.getElementById('exploreBtn').addEventListener('click', function(){
+    var theme = document.getElementById('clusterTitle').textContent;
+    var url = document.getElementById('clusterUrl').textContent;
+    var handoff = document.getElementById('handoff');
+    document.getElementById('handoffText').innerHTML =
+      'In the full platform, this opens the '+theme+' hub at <a href="#" onclick="return false;">iol.co.za'+url+'</a> &mdash; stories, data and voices on '+theme.toLowerCase()+'.';
+    handoff.classList.add('show');
+  });
+
+  document.getElementById('backToWall').addEventListener('click', function(){
+    buildThemeList();
+    showScene('patterns');
+  });
+
+  /* ---------- BACK / RESTART ---------- */
+  document.getElementById('backBtn').addEventListener('click', function(){
+    if(state.scene==='cluster'){ buildThemeList(); showScene('patterns'); return; }
+    if(state.scene==='patterns'){ showScene('ledger'); setPhase('wall'); return; }
+    if(state.scene==='ledger'){ showScene('cover'); return; }
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', restart);
+  function restart(){
+    input.value=''; document.getElementById('charCount').textContent='90';
+    submitBtn.disabled = true; submitBtn.classList.remove('ready','pressed');
+    stanceBtns.forEach(function(b){ b.classList.remove('active'); });
+    state.userStance = null;
+    leadIn.textContent = "Choose one, then tell us in your own words…";
+    THEME_ORDER.forEach(function(t){COUNTS[t]={back:BASE_COUNTS[t].back, now:BASE_COUNTS[t].now};});
+    showScene('cover'); setPhase('write');
+  }
+
+  /* ---------- responsive scale ---------- */
+  function fit(){
+    var pad = 40;
+    var availW = window.innerWidth - pad;
+    var availH = window.innerHeight - 70;
+    var scale = Math.min(1, availW/300, availH/600);
+    document.getElementById('scaler').style.transform = 'scale('+scale+')';
+  }
+  window.addEventListener('resize', fit);
+  fit();
+
+  updateRail(); updateBack();
+})();
+</script>
