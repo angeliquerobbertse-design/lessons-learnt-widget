@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Lessons Learnt</title>
 <style>
   :root{
@@ -171,7 +172,7 @@
   }
   .prompt-q{
     font-family:var(--serif); font-size:24px; line-height:1.18;
-    color:var(--ink); margin:0 0 22px; max-width:230px;
+    color:var(--ink); margin:0 0 16px; max-width:230px;
   }
 
   /* -- phase: write -- */
@@ -189,8 +190,8 @@
   .stance-btn.active[data-stance="now"]{border-color:var(--red); color:var(--red); background:rgba(159,0,90,.07);}
   .lead-in{
     font-family:var(--serif); font-style:italic; font-size:14px;
-    color:var(--ink-soft); margin:0 0 10px; line-height:1.45;
-    min-height:38px;
+    color:var(--ink-soft); margin:0 0 8px; line-height:1.4;
+    min-height:36px;
   }
   .input-row{
     border-bottom:1px solid rgba(26,26,26,.35);
@@ -217,7 +218,7 @@
     position:absolute; right:24px; bottom:26px;
   }
   .stamp-btn{
-    appearance:none; border:none; cursor:not-allowed; padding:0;
+    appearance:none; border:none; cursor:pointer; padding:0;
     width:74px; height:74px; border-radius:50%;
     background:transparent;
     border:1.5px solid rgba(26,26,26,.25);
@@ -235,6 +236,71 @@
   }
   .stamp-btn.ready:hover{background:rgba(159,0,90,.06);}
   .stamp-btn.pressed{transform:rotate(0deg) scale(.86);}
+
+  .stance-hint{
+    font-family:var(--serif); font-style:italic; font-size:14px;
+    color:var(--ink-soft); margin:-6px 0 10px; line-height:1.4;
+  }
+  .nudge{
+    font-family:var(--serif); font-style:italic; font-size:12.5px; color:var(--red);
+    margin:2px 0 0; min-height:0; opacity:0; transition:opacity .25s ease;
+  }
+  .nudge.show{opacity:1;}
+  .flag{animation:flagpulse .9s ease 1;}
+  @keyframes flagpulse{0%,100%{box-shadow:0 0 0 0 rgba(159,0,90,0);}40%{box-shadow:0 0 0 4px rgba(159,0,90,.25);}}
+  /* -- age slider -- */
+  .age-row{margin:0 0 14px;}
+  .age-head{display:flex; justify-content:space-between; align-items:baseline; margin:0 0 6px;}
+  .age-label{font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);}
+  .age-val{font-family:var(--serif); font-style:italic; font-size:13.5px; color:rgba(26,26,26,.4); transition:color .2s ease;}
+  .age-row.set .age-val{color:var(--ink);}
+  #ageInput{
+    -webkit-appearance:none; appearance:none; width:100%; height:18px; margin:0;
+    background:transparent; cursor:pointer;
+  }
+  #ageInput::-webkit-slider-runnable-track{
+    height:4px; border-radius:2px;
+    background:linear-gradient(90deg, var(--red), var(--brass));
+    opacity:.35; transition:opacity .2s ease;
+  }
+  #ageInput::-moz-range-track{
+    height:4px; border-radius:2px;
+    background:linear-gradient(90deg, var(--red), var(--brass));
+    opacity:.35;
+  }
+  .age-row.set #ageInput::-webkit-slider-runnable-track{opacity:1;}
+  .age-row.set #ageInput::-moz-range-track{opacity:1;}
+  #ageInput::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%; margin-top:-7px;
+    background:#fff; border:2px solid rgba(26,26,26,.35); box-shadow:0 2px 6px rgba(26,26,26,.18);
+  }
+  #ageInput::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%;
+    background:#fff; border:2px solid rgba(26,26,26,.35);
+  }
+  .age-row.set #ageInput::-webkit-slider-thumb{border-color:var(--red);}
+  .age-row.set #ageInput::-moz-range-thumb{border-color:var(--red);}
+  #ageInput:focus-visible{outline:2px solid var(--red); outline-offset:3px;}
+  .age-scale{position:relative; height:12px; font-family:var(--mono); font-size:8.5px; letter-spacing:.06em; text-transform:uppercase; color:rgba(26,26,26,.45); margin-top:4px;}
+  .age-scale span{position:absolute; top:0; white-space:nowrap;}
+  .age-scale .lo{left:0;} .age-scale .hi{right:0;}
+
+
+  /* -- quirky rotating lessons -- */
+  .quirk{
+    position:absolute; left:26px; bottom:30px; width:158px;
+  }
+  .quirk-label{
+    font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--brass-dim); margin:0 0 5px; display:flex; align-items:center; gap:6px;
+  }
+  .quirk-label i{font-style:normal; color:rgba(26,26,26,.35); font-variant-numeric:tabular-nums;}
+  .quirk-text{
+    font-family:var(--serif); font-style:italic; font-size:13.5px; line-height:1.3;
+    color:var(--ink); margin:0; min-height:52px;
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .quirk-text.out{opacity:0; transform:translateY(4px);}
 
   /* -- phase: stamp -- */
   .stamp-block{display:none;}
@@ -310,9 +376,12 @@
     display:flex;align-items:center;justify-content:center;
   }
   .pager button:hover{background:rgba(26,26,26,.06);}
-  .sample-lines{display:flex; flex-direction:column; gap:11px;}
+  .sample-lines{display:flex; flex-direction:column; gap:0;}
   .sample-lines .lesson-line{font-size:14px; color:var(--ink-soft); font-style:italic;}
-  .sample-item{display:flex; flex-direction:column; gap:3px;}
+  .sample-item{display:flex; flex-direction:column; gap:4px; padding:11px 0 11px 12px; border-left:2px solid rgba(26,26,26,.12); margin-bottom:10px;}
+  .sample-item:last-child{margin-bottom:0;}
+  .sample-item.back{border-left-color:var(--brass);}
+  .sample-item.now{border-left-color:var(--red);}
   .stance-tag{
     font-family:var(--mono); font-size:8.5px; letter-spacing:.08em; text-transform:uppercase;
     display:inline-block; width:fit-content;
@@ -489,18 +558,29 @@
           <div class="write-block">
             <p class="kicker">02 &mdash; Your turn</p>
             <h2 class="prompt-q">What's one lesson worth passing on?</h2>
+            <p class="stance-hint">Looking back or right now? Pick one, then write yours&hellip;</p>
             <div class="stance-row" id="stanceRow">
               <button class="stance-btn" type="button" data-stance="back"><b>Looking back</b>What I've learned</button>
               <button class="stance-btn" type="button" data-stance="now"><b>Right now</b>What I'm learning</button>
             </div>
-            <p class="lead-in" id="leadIn">Choose one, then tell us in your own words&hellip;</p>
+            <div class="age-row" id="ageRow">
+              <div class="age-head"><label class="age-label" for="ageInput">Your age</label><span class="age-val" id="ageVal">Slide to set</span></div>
+              <input type="range" id="ageInput" min="16" max="90" step="1" value="45" aria-valuetext="Not set" />
+              <div class="age-scale"><span class="lo">16</span><span class="hi">90+</span></div>
+            </div>
+            <p class="lead-in" id="leadIn"></p>
             <div class="input-row" id="inputRow">
               <input id="lessonInput" maxlength="90" placeholder="Type it here" autocomplete="off" />
             </div>
             <p class="input-meta"><span id="charCount">90</span> characters left</p>
+            <p class="nudge" id="nudge" aria-live="polite"></p>
             <p class="imprint">Anonymous by design &mdash; no name, no email, no account.</p>
+            <div class="quirk" aria-live="off">
+              <p class="quirk-label">Lessons we all learn <i id="quirkNum">01/10</i></p>
+              <p class="quirk-text" id="quirkText">&ldquo;Never race a taxi for a gap. You will lose.&rdquo;</p>
+            </div>
             <div class="stamp-dock">
-              <button class="stamp-btn" id="submitBtn" disabled>Share<br>Anon.</button>
+              <button class="stamp-btn" id="submitBtn" type="button">Submit</button>
             </div>
           </div>
 
@@ -522,10 +602,9 @@
             <div class="sample-lines" id="sampleLines"></div>
           </div>
 
-          <div class="joined-flash" id="joinedFlash"><p>Your lesson has joined the wall.</p></div>
 
           <div class="wall-cta" id="wallCta" style="display:none;">
-            <button class="tab-cta" id="toPatterns">See the patterns <span>&rarr;</span></button>
+            <button class="tab-cta" id="toPatterns">See other lessons learnt <span>&rarr;</span></button>
           </div>
         </div>
       </section>
@@ -533,9 +612,9 @@
       <!-- SCENE 3 — PATTERNS -->
       <section class="scene" data-scene="patterns">
         <div class="patterns-head">
-          <p class="kicker">05 &mdash; Patterns</p>
+          <p class="kicker">05 &mdash; Other lessons learnt</p>
           <h2 class="patterns-title">What one generation learned. What the next is still learning.</h2>
-          <p class="patterns-sub">Every theme holds two kinds of voices &mdash; look at the balance.</p>
+          <p class="patterns-sub">Tap a theme to read what others have learnt.</p>
           <p class="patterns-legend"><span><i class="back"></i>Looking back</span><span><i class="now"></i>Right now</span></p>
         </div>
         <div class="theme-list" id="themeList"></div>
@@ -627,6 +706,7 @@
     userText:'',
     userTheme:'LIFE',
     userStance:null,
+    userAge:null,
     sampleOffset:0
   };
 
@@ -660,6 +740,7 @@
     ledger.querySelector('.stamp-block').style.display = (p==='stamp')?'block':'none';
     ledger.querySelector('.wall-block').style.display = (p==='wall')?'flex':'none';
     document.getElementById('wallCta').style.display = (p==='wall')?'block':'none';
+    if(typeof startQuirks==='function'){ (p==='write' && state.scene==='ledger') ? startQuirks() : stopQuirks(); }
     updateRail();
   }
 
@@ -682,10 +763,85 @@
     now: "The thing I'm learning right now is…"
   };
 
+  /* ---------- QUIRKY LESSONS (rotating, editorial, not user submissions) ---------- */
+  var QUIRKS = [
+    "Never race a taxi for a gap. You will lose.",
+    "Your gran was right: keep a bag full of plastic bags.",
+    "Never lend out your best lunch box. It's not coming back.",
+    "The ‘quick stop’ at the shops is never quick.",
+    "Never braai in your best shirt.",
+    "Your mom can hear you roll your eyes over the phone.",
+    "Charge your phone before it hits 1%, not after.",
+    "If it says ‘some assembly required’, cancel your weekend.",
+    "‘Just now’ can mean five minutes or five days. Ask which.",
+    "Never reply-all. Ever."
+  ];
+  var quirkI = 0, quirkTimer = null;
+  var quirkText = document.getElementById('quirkText');
+  var quirkNum = document.getElementById('quirkNum');
+  function pad2(n){ return (n<10?'0':'')+n; }
+  function showQuirk(i){
+    quirkText.classList.add('out');
+    setTimeout(function(){
+      quirkText.textContent = '“'+QUIRKS[i]+'”';
+      quirkNum.textContent = pad2(i+1)+'/'+pad2(QUIRKS.length);
+      quirkText.classList.remove('out');
+    }, 700);
+  }
+  function startQuirks(){
+    stopQuirks();
+    quirkTimer = setInterval(function(){
+      quirkI = (quirkI+1) % QUIRKS.length;
+      showQuirk(quirkI);
+    }, 5500);
+  }
+  function stopQuirks(){ if(quirkTimer){ clearInterval(quirkTimer); quirkTimer = null; } }
+
+  /* ---------- AGE ---------- */
+  var ageInput = document.getElementById('ageInput');
+  var ageRow = document.getElementById('ageRow');
+  var ageVal = document.getElementById('ageVal');
+  function ageText(a){ return a>=90 ? '90+' : String(a); }
+  function decade(a){ return a>=90 ? '90+' : (Math.floor(a/10)*10)+'s'; }
+  function onAge(){
+    var a = parseInt(ageInput.value,10);
+    state.userAge = a;
+    ageRow.classList.add('set');
+    ageVal.textContent = ageText(a);
+    ageInput.setAttribute('aria-valuetext', ageText(a));
+    checkReady();
+  }
+  ageInput.addEventListener('input', onAge);
+  ageInput.addEventListener('change', onAge);
+  ageInput.addEventListener('pointerup', onAge);
+  ageInput.addEventListener('keyup', onAge);
+  function resetAge(){
+    ageInput.value = 45; state.userAge = null;
+    ageRow.classList.remove('set');
+    ageVal.textContent = 'Slide to set';
+    ageInput.setAttribute('aria-valuetext','Not set');
+  }
+  function ageTag(){
+    if(state.userAge==null) return '';
+    return ' · in their '+decade(state.userAge);
+  }
+
+  var nudgeEl = document.getElementById('nudge');
+  function isReady(){ return input.value.trim().length>2 && !!state.userStance && state.userAge!=null; }
   function checkReady(){
-    var ready = input.value.trim().length>2 && !!state.userStance;
-    submitBtn.disabled = !ready;
+    var ready = isReady();
     submitBtn.classList.toggle('ready', ready);
+    submitBtn.setAttribute('aria-disabled', ready ? 'false' : 'true');
+    if(ready) nudgeEl.classList.remove('show');
+  }
+  function flag(el){ el.classList.remove('flag'); void el.offsetWidth; el.classList.add('flag'); }
+  function nudge(){
+    var msg, el;
+    if(!state.userStance){ msg = 'Pick looking back or right now first.'; el = document.getElementById('stanceRow'); }
+    else if(state.userAge==null){ msg = 'Slide to set your age.'; el = ageRow; }
+    else { msg = 'Write your lesson, then submit.'; el = inputRow; }
+    nudgeEl.textContent = msg; nudgeEl.classList.add('show');
+    flag(el);
   }
 
   stanceBtns.forEach(function(btn){
@@ -706,12 +862,14 @@
     checkReady();
   });
   input.addEventListener('keydown', function(e){
-    if(e.key==='Enter' && !submitBtn.disabled) submitLesson();
+    if(e.key==='Enter') submitLesson();
   });
   submitBtn.addEventListener('click', submitLesson);
 
   function submitLesson(){
-    if(submitBtn.disabled) return;
+    if(!isReady()){ nudge(); return; }
+    if(state.submitting) return;
+    state.submitting = true;
     var text = input.value.trim();
     state.userText = text;
     state.userTheme = classify(text);
@@ -722,7 +880,7 @@
       setPhase('stamp');
       document.getElementById('filedLine').textContent = '“'+text+'”';
       document.getElementById('filedTheme').textContent = state.userTheme;
-      document.getElementById('filedStance').textContent = '— '+(state.userStance==='back' ? 'Looking back' : 'Right now');
+      document.getElementById('filedStance').textContent = '— '+(state.userStance==='back' ? 'Looking back' : 'Right now')+ageTag();
       var block = document.querySelector('.stamp-block');
       block.classList.remove('landed','tagged');
       void block.offsetWidth;
@@ -732,13 +890,9 @@
       });
 
       setTimeout(function(){
-        var flash = document.getElementById('joinedFlash');
-        flash.classList.add('show');
-        setTimeout(function(){
-          flash.classList.remove('show');
-          enterWall();
-        }, 1400);
-      }, 1500);
+        state.submitting = false;
+        enterWall();
+      }, 1900);
     }, 260);
   }
 
@@ -746,8 +900,8 @@
   function groupsForOthers(){
     var pool = LESSONS.slice();
     var groups = [];
-    for(var i=0;i<pool.length;i+=4){
-      groups.push(pool.slice(i,i+4));
+    for(var i=0;i<pool.length;i+=3){
+      groups.push(pool.slice(i,i+3));
     }
     return groups;
   }
@@ -759,7 +913,7 @@
     wrap.style.opacity = 0;
     setTimeout(function(){
       wrap.innerHTML = group.map(function(l){
-        return '<div class="sample-item"><span class="stance-tag '+l.stance+'">'+(l.stance==='back'?'Looking back':'Right now')+'</span><p class="lesson-line">“'+l.text+'”</p></div>';
+        return '<div class="sample-item '+l.stance+'"><span class="stance-tag '+l.stance+'">'+(l.stance==='back'?'Looking back':'Right now')+'</span><p class="lesson-line">“'+l.text+'”</p></div>';
       }).join('');
       wrap.style.transition = 'opacity .35s ease';
       wrap.style.opacity = 1;
@@ -768,7 +922,7 @@
 
   function enterWall(){
     document.getElementById('yourLine').textContent = '“'+state.userText+'”';
-    document.getElementById('tagYours').textContent = '— yours, ' + (state.userStance==='back' ? 'looking back' : 'right now');
+    document.getElementById('tagYours').textContent = '— yours, ' + (state.userStance==='back' ? 'looking back' : 'right now') + ageTag().toLowerCase();
     state.sampleOffset = 0;
     renderSampleGroup();
     setPhase('wall');
@@ -884,10 +1038,12 @@
   document.getElementById('restartBtn').addEventListener('click', restart);
   function restart(){
     input.value=''; document.getElementById('charCount').textContent='90';
-    submitBtn.disabled = true; submitBtn.classList.remove('ready','pressed');
+    submitBtn.classList.remove('ready','pressed'); state.submitting = false;
+    nudgeEl.textContent = ''; nudgeEl.classList.remove('show');
     stanceBtns.forEach(function(b){ b.classList.remove('active'); });
     state.userStance = null;
-    leadIn.textContent = "Choose one, then tell us in your own words…";
+    resetAge();
+    leadIn.textContent = "";
     THEME_ORDER.forEach(function(t){COUNTS[t]={back:BASE_COUNTS[t].back, now:BASE_COUNTS[t].now};});
     showScene('cover'); setPhase('write');
   }
@@ -906,3 +1062,6 @@
   updateRail(); updateBack();
 })();
 </script>
+
+
+</body></html>
